@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Replicate from 'replicate'
+import fs from 'fs'
+import path from 'path'
 
 // Define the type for Replicate response
 interface ReplicateResponse {
@@ -19,6 +21,36 @@ interface ReplicatePrediction {
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 })
+
+// Function to download and save audio file
+async function downloadAndSaveAudio(audioUrl: string, filename: string): Promise<string> {
+  try {
+    // Create public/audios directory if it doesn't exist
+    const audioDir = path.join(process.cwd(), 'public', 'audios')
+    if (!fs.existsSync(audioDir)) {
+      fs.mkdirSync(audioDir, { recursive: true })
+    }
+
+    // Download the audio file
+    const response = await fetch(audioUrl)
+    if (!response.ok) {
+      throw new Error(`Failed to download audio: ${response.statusText}`)
+    }
+
+    const arrayBuffer = await response.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+
+    // Save to local file
+    const filePath = path.join(audioDir, filename)
+    fs.writeFileSync(filePath, buffer)
+
+    // Return the local URL path
+    return `/audios/${filename}`
+  } catch (error) {
+    console.error('Error downloading and saving audio:', error)
+    throw error
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,17 +73,18 @@ export async function POST(request: NextRequest) {
 
     const input = {
       text: pirateText,
-      pitch: voiceParams.pitch,
-      speed: voiceParams.speed,
+      pitch: 1,
+      speed: 1,
       volume: 1,
       bitrate: 128000,
-      channel: "mono",
+      channel: "mono" as const,
       emotion: voiceParams.emotion,
       voice_id: "R8_QBE6P33A",
       sample_rate: 32000,
       language_boost: "English",
       english_normalization: true
     };
+    console.log(input)
     
     // Create prediction instead of running directly
     const prediction = await replicate.predictions.create({
@@ -109,8 +142,17 @@ export async function POST(request: NextRequest) {
 
     console.log('Voice generation completed successfully:', completed.output);
 
+    // Generate unique filename
+    const timestamp = Date.now()
+    const filename = `pirate-voice-${timestamp}.mp3`
+    
+    // Download and save audio file locally
+    const localAudioPath = await downloadAndSaveAudio(completed.output, filename)
+
     return NextResponse.json({
       url: completed.output,
+      localUrl: localAudioPath,
+      filename: filename,
       pirateText: pirateText,
       originalText: text,
       intensity: intensity
@@ -162,25 +204,25 @@ function getVoiceParameters(intensity: number): { emotion: string, pitch: number
   if (intensity <= 3) {
     return {
       emotion: "neutral",
-      pitch: 0.9,
+      pitch: -2,  // Integer value between -12 and 12
       speed: 0.9
     }
   } else if (intensity <= 6) {
     return {
       emotion: "happy",
-      pitch: 1.0,
+      pitch: 0,   // Integer value between -12 and 12
       speed: 1.0
     }
   } else if (intensity <= 8) {
     return {
       emotion: "angry",
-      pitch: 1.1,
+      pitch: 3,   // Integer value between -12 and 12
       speed: 1.1
     }
   } else {
     return {
       emotion: "angry",
-      pitch: 1.2,
+      pitch: 6,   // Integer value between -12 and 12
       speed: 1.2
     }
   }

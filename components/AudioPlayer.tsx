@@ -90,13 +90,6 @@ export default function AudioPlayer({ audioUrl, pirateText, onDownload }: AudioP
       transition={{ duration: 0.3 }}
     >
       <audio ref={audioRef} src={audioUrl} preload="metadata" />
-      
-      {pirateText && (
-        <div className="mb-4 p-3 bg-black/20 rounded-lg border border-pirate-gold/30">
-          <h4 className="text-sm font-semibold text-pirate-gold mb-2">🏴‍☠️ Pirate Translation:</h4>
-          <p className="text-gray-300 italic">"{pirateText}"</p>
-        </div>
-      )}
 
       {/* Main Controls */}
       <div className="flex items-center gap-4 mb-4">
