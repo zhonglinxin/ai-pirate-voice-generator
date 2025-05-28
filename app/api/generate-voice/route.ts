@@ -1,68 +1,116 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Replicate from 'replicate'
 
+// Define the type for Replicate response
+interface ReplicateResponse {
+  output?: string;
+  [key: string]: any;
+}
+
+// Define the type for Replicate prediction
+interface ReplicatePrediction {
+  id: string;
+  status: 'starting' | 'processing' | 'succeeded' | 'failed' | 'canceled';
+  output?: string;
+  error?: string;
+  [key: string]: any;
+}
+
 const replicate = new Replicate({
-  auth: process.env.REPLICATE_API_TOKEN || process.env.NEXT_PUBLIC_REPLICATE_API_TOKEN || 'r8_99hwxvLU7MF6UtIIvehcjZ7M9Lvne8K2Mpno0',
+  auth: process.env.REPLICATE_API_TOKEN,
 })
 
 export async function POST(request: NextRequest) {
   try {
+    // Get text and intensity from request body
     const { text, intensity } = await request.json()
-
-    if (!text || typeof text !== 'string') {
+    
+    if (!text || !text.trim()) {
       return NextResponse.json(
-        { error: 'Text is required and must be a string' },
-        { status: 400 }
-      )
-    }
-
-    if (!intensity || typeof intensity !== 'number' || intensity < 1 || intensity > 10) {
-      return NextResponse.json(
-        { error: 'Intensity must be a number between 1 and 10' },
+        { error: 'Text is required' },
         { status: 400 }
       )
     }
 
     // Transform text to pirate speak
-    const pirateText = transformToPirateSpeak(text, intensity)
+    const pirateText = text.trim()
+    // const pirateText = transformToPirateSpeak(text.trim(), intensity || 5)
     
     // Get voice parameters based on intensity
-    const { emotion, pitch, speed } = getVoiceParameters(intensity)
+    const voiceParams = getVoiceParameters(intensity || 5)
 
     const input = {
       text: pirateText,
-      pitch: pitch,
-      speed: speed,
+      pitch: voiceParams.pitch,
+      speed: voiceParams.speed,
       volume: 1,
       bitrate: 128000,
-      channel: "mono" as const,
-      emotion: emotion,
+      channel: "mono",
+      emotion: voiceParams.emotion,
       voice_id: "R8_QBE6P33A",
       sample_rate: 32000,
       language_boost: "English",
       english_normalization: true
-    }
-
-    console.log('Generating voice with input:', input)
-
-    const output = await replicate.run("minimax/speech-02-hd", { input })
+    };
     
-    // Handle different output formats
-    let audioUrl: string
-    if (typeof output === 'string') {
-      audioUrl = output
-    } else if (output && typeof output === 'object' && 'url' in output) {
-      audioUrl = (output as any).url
-    } else {
-      audioUrl = String(output)
+    // Create prediction instead of running directly
+    const prediction = await replicate.predictions.create({
+      model: "minimax/speech-02-hd",
+      input
+    });
+    
+    console.log('Prediction created:', prediction.id, 'Status:', prediction.status);
+
+    // Poll for completion with timeout
+    let completed: ReplicatePrediction | null = null;
+    const maxAttempts = 30; // Maximum 60 seconds (30 * 2 seconds)
+    
+    for (let i = 0; i < maxAttempts; i++) {
+      const latest = await replicate.predictions.get(prediction.id) as ReplicatePrediction;
+      console.log(`Attempt ${i + 1}: Status = ${latest.status}`);
+      
+      if (latest.status !== "starting" && latest.status !== "processing") {
+        completed = latest;
+        break;
+      }
+      
+      // Wait for 2 seconds before next check
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
 
-    if (!audioUrl) {
-      throw new Error('No audio URL returned from the API')
+    if (!completed) {
+      return NextResponse.json(
+        { error: 'Voice generation timed out. Please try again.' },
+        { status: 408 }
+      )
     }
+
+    if (completed.status === 'failed') {
+      console.error('Prediction failed:', completed.error);
+      return NextResponse.json(
+        { error: 'Voice generation failed', details: completed.error },
+        { status: 500 }
+      )
+    }
+
+    if (completed.status === 'canceled') {
+      return NextResponse.json(
+        { error: 'Voice generation was canceled' },
+        { status: 500 }
+      )
+    }
+
+    if (completed.status !== 'succeeded' || !completed.output) {
+      return NextResponse.json(
+        { error: 'Voice generation did not complete successfully' },
+        { status: 500 }
+      )
+    }
+
+    console.log('Voice generation completed successfully:', completed.output);
 
     return NextResponse.json({
-      url: audioUrl,
+      url: completed.output,
       pirateText: pirateText,
       originalText: text,
       intensity: intensity

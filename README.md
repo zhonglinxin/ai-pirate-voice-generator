@@ -7,167 +7,70 @@ Transform your ordinary text into authentic pirate speech with AI-powered voice 
 - **AI-Powered Voice Generation**: Uses Replicate's minimax/speech-02-hd model for high-quality voice synthesis
 - **Pirate Text Transformation**: Automatically converts regular text to authentic pirate speak
 - **Intensity Control**: Adjustable slider (1-10) to control how aggressive and dramatic the pirate voice sounds
+- **Advanced Audio Player**: Custom audio player with play/pause, progress control, volume adjustment, and reset functionality
 - **Responsive Design**: Beautiful, modern UI that works perfectly on both mobile and desktop
 - **Local Storage**: Automatically saves your generation history
 - **Sample Phrases**: Quick-start with pre-written pirate phrases
-- **Download & Share**: Download generated audio or share your creations
+- **Download & Share**: Download generated MP3 audio or share your creations
+
+## 🔧 Technical Implementation
+
+### API Architecture
+The voice generation API (`/api/generate-voice`) implements the Replicate prediction lifecycle pattern:
+
+1. **Prediction Creation**: Creates a prediction using `replicate.predictions.create()`
+2. **Status Polling**: Polls the prediction status every 2 seconds until completion
+3. **Timeout Handling**: Maximum 60-second timeout to prevent hanging requests
+4. **Error Management**: Comprehensive error handling for failed, canceled, or timed-out predictions
+
+### Voice Parameters
+The system adjusts voice characteristics based on intensity level (1-10):
+- **Low Intensity (1-3)**: Neutral emotion, normal pitch/speed
+- **Medium Intensity (4-6)**: Happy emotion, standard parameters  
+- **High Intensity (7-8)**: Angry emotion, increased pitch/speed
+- **Maximum Intensity (9-10)**: Very angry emotion, maximum pitch/speed
+
+### Prediction Lifecycle States
+- `starting`: Prediction is being initialized
+- `processing`: AI model is generating the audio
+- `succeeded`: Audio generation completed successfully
+- `failed`: Generation failed with error details
+- `canceled`: Prediction was canceled
 
 ## 🚀 Getting Started
 
-### Prerequisites
-
-- Node.js 18+ 
-- npm or yarn
-- Replicate API account
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone <your-repo-url>
-   cd ai-pirate-voice-generator
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Set up environment variables:
    ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   # or
-   yarn install
+   REPLICATE_API_TOKEN=your_replicate_token_here
    ```
+4. Run the development server: `npm run dev`
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-3. **Set up environment variables**
-   
-   Create a `.env.local` file in the root directory:
-   ```bash
-   # Get your API key from https://replicate.com/account/api-tokens
-   REPLICATE_API_TOKEN=your_replicate_api_token_here
-   NEXT_PUBLIC_REPLICATE_API_TOKEN=your_replicate_api_token_here
-   ```
+## 📝 Usage
 
-4. **Run the development server**
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   ```
+1. Enter your text in the input field
+2. Adjust the pirate intensity slider (1-10)
+3. Click "Generate Pirate Voice" 
+4. Wait for the AI to process your request (may take 10-60 seconds)
+5. Play, download, or share your generated pirate voice
 
-5. **Open your browser**
-   
-   Navigate to [http://localhost:3000](http://localhost:3000)
+## 🛠️ Project Structure
 
-## 🛠️ Tech Stack
-
-- **Framework**: Next.js 14 with App Router
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Animations**: Framer Motion
-- **Icons**: Lucide React
-- **AI Service**: Replicate (minimax/speech-02-hd model)
-- **Storage**: Browser localStorage
-
-## 🎨 UI Features
-
-- **Modern Glass-morphism Design**: Beautiful frosted glass effects
-- **Animated Star Field**: Dynamic twinkling stars background
-- **Responsive Layout**: Optimized for mobile and desktop
-- **Interactive Elements**: Smooth animations and hover effects
-- **Pirate Theme**: Authentic maritime color scheme and typography
-
-## 🎯 How It Works
-
-1. **Text Input**: Enter any text you want to convert to pirate speech
-2. **Intensity Selection**: Choose how aggressive the pirate voice should sound (1-10)
-3. **AI Processing**: The app transforms your text to pirate speak and generates audio using Replicate's AI
-4. **Audio Playback**: Listen to your generated pirate voice
-5. **Download/Share**: Save the audio file or share your creation
-
-## 🏴‍☠️ Pirate Transformations
-
-The app automatically transforms regular text using:
-
-- **Word Replacements**: "you" → "ye", "your" → "yer", "my" → "me"
-- **Pirate Expressions**: Adds appropriate pirate phrases based on intensity
-- **Voice Parameters**: Adjusts pitch, speed, and emotion based on intensity level
-
-### Intensity Levels
-
-- **1-3 (Gentle Sailor)**: Calm, neutral voice with basic pirate vocabulary
-- **4-6 (First Mate)**: Moderate intensity with classic pirate expressions
-- **7-8 (Captain)**: Strong, commanding voice with dramatic flair
-- **9-10 (Blackbeard!)**: Maximum aggression with fierce pirate personality
-
-## 📱 Mobile Optimization
-
-- Touch-friendly interface
-- Responsive grid layout
-- Optimized animations for mobile devices
-- Easy-to-use slider controls
-
-## 🔧 API Reference
-
-### POST /api/generate-voice
-
-Generate pirate voice from text.
-
-**Request Body:**
-```json
-{
-  "text": "Your text here",
-  "intensity": 5
-}
+```
+├── app/
+│   ├── api/generate-voice/route.ts    # Voice generation API endpoint
+│   ├── components/                    # React components
+│   ├── page.tsx                      # Main application page
+│   └── layout.tsx                    # App layout
+├── public/                           # Static assets
+└── README.md                        # Project documentation
 ```
 
-**Response:**
-```json
-{
-  "url": "https://...",
-  "pirateText": "Arrr! Yer text here, matey!",
-  "originalText": "Your text here",
-  "intensity": 5
-}
-```
+## ⚠️ Important Notes
 
-## 🚀 Deployment
-
-### Vercel (Recommended)
-
-1. Push your code to GitHub
-2. Connect your repository to Vercel
-3. Add your environment variables in Vercel dashboard
-4. Deploy!
-
-### Other Platforms
-
-The app can be deployed to any platform that supports Next.js:
-- Netlify
-- Railway
-- Digital Ocean
-- AWS Amplify
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- [Replicate](https://replicate.com/) for the amazing AI voice synthesis API
-- [Minimax](https://www.minimaxi.com/) for the speech-02-hd model
-- The open-source community for the incredible tools and libraries
-
-## 🔗 Links
-
-- [Live Demo](https://your-deployment-url.vercel.app)
-- [Replicate Model](https://replicate.com/minimax/speech-02-hd)
-- [API Documentation](https://replicate.com/docs)
-
----
-
-**Arrr! Ready to set sail on the digital seas? ⚓** # ai-pirate-voice-generator
+- Voice generation can take 10-60 seconds depending on text length
+- The API implements a 60-second timeout to prevent hanging requests
+- Each character in the input text represents 1 token for billing purposes
+- Ensure your Replicate API token has sufficient credits for voice generation

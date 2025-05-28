@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { Volume2, Download, Share2, Loader2, Anchor, Skull } from 'lucide-react'
 import IntensitySlider from '@/components/IntensitySlider'
 import StarField from '@/components/StarField'
+import AudioPlayer from '@/components/AudioPlayer'
 
 export default function Home() {
   const [text, setText] = useState('')
@@ -81,7 +82,7 @@ export default function Home() {
     if (audioUrl) {
       const link = document.createElement('a')
       link.href = audioUrl
-      link.download = 'pirate-voice.wav'
+      link.download = 'pirate-voice.mp3'
       link.click()
     }
   }
@@ -220,29 +221,13 @@ export default function Home() {
 
             {audioUrl ? (
               <div className="space-y-4">
-                {pirateText && (
-                  <div className="p-4 bg-black/20 rounded-lg border border-pirate-gold/30">
-                    <h4 className="text-sm font-semibold text-pirate-gold mb-2">Pirate Translation:</h4>
-                    <p className="text-gray-300 italic">"{pirateText}"</p>
-                  </div>
-                )}
-                
-                <audio 
-                  controls 
-                  src={audioUrl} 
-                  className="w-full rounded-lg"
-                  style={{ filter: 'sepia(1) saturate(2) hue-rotate(320deg)' }}
+                <AudioPlayer 
+                  audioUrl={audioUrl} 
+                  pirateText={pirateText}
+                  onDownload={handleDownload}
                 />
                 
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <button
-                    onClick={handleDownload}
-                    className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-all"
-                  >
-                    <Download className="w-4 h-4" />
-                    Download Audio
-                  </button>
-                  
                   <button
                     onClick={handleShare}
                     className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-all"

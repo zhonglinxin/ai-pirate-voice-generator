@@ -10,7 +10,7 @@ class VoiceGeneratorService {
   
   constructor() {
     this.replicate = new Replicate({
-      auth: process.env.NEXT_PUBLIC_REPLICATE_API_TOKEN || 'r8_99hwxvLU7MF6UtIIvehcjZ7M9Lvne8K2Mpno0',
+      auth: process.env.REPLICATE_API_TOKEN,
     })
   }
 
@@ -41,7 +41,7 @@ class VoiceGeneratorService {
 
       console.log('Generating voice with input:', input)
 
-      const output = await this.replicate.run("minimax/speech-02-hd", { input })
+      const output = await this.replicate.run("minimax/speech-02-hd:latest", { input })
       
       // The output should have a url method or be a URL directly
       const audioUrl = typeof output === 'string' ? output : (output as any)?.url || (output as any)
