@@ -25,44 +25,55 @@ export default function Home() {
   const [generatedAudios, setGeneratedAudios] = useState<GeneratedAudio[]>([])
   const [enablePirateTranslation, setEnablePirateTranslation] = useState(false)
   const [sampleDurations, setSampleDurations] = useState<{ [key: number]: number }>({})
+  const [expandedAudios, setExpandedAudios] = useState<{ [key: string]: boolean }>({})
 
   const samplePhrases = [
     {
       text: "Shiver me timbers! That be the finest treasure I ever did see, ye scurvy dog!",
-      audioUrl: "https://replicate.delivery/xezq/DW4OeOGgHbWLASZpwCabL1LDTJWkXrhq6EhIsgHQaQF3XkYKA/tmppbu_mbif.mp3"
+      audioUrl: "/audios/pirate-voice-1748438912306.mp3"
     },
     {
       text: "Avast ye landlubbers! Drop anchor and prepare to be boarded, ye scallywags!",
-      audioUrl: "https://replicate.delivery/xezq/DW4OeOGgHbWLASZpwCabL1LDTJWkXrhq6EhIsgHQaQF3XkYKA/tmppbu_mbif.mp3"
+      audioUrl: "/audios/pirate-voice-1748438076756.mp3"
     },
     {
       text: "Yo ho ho and a bottle of rum! Raise the Jolly Roger and let's plunder some gold!",
-      audioUrl: "https://replicate.delivery/xezq/DW4OeOGgHbWLASZpwCabL1LDTJWkXrhq6EhIsgHQaQF3XkYKA/tmppbu_mbif.mp3"
+      audioUrl: "/audios/pirate-voice-1748438467152.mp3"
     },
     {
       text: "Batten down the hatches, me hearties! A mighty storm be brewin' on the horizon!",
-      audioUrl: "https://replicate.delivery/xezq/DW4OeOGgHbWLASZpwCabL1LDTJWkXrhq6EhIsgHQaQF3XkYKA/tmppbu_mbif.mp3"
+      audioUrl: "/audios/pirate-voice-1748438427846.mp3"
     },
     {
       text: "Arrr! Walk the plank, ye yellow-bellied sea dog, or face the wrath of Davy Jones!",
-      audioUrl: "https://replicate.delivery/xezq/DW4OeOGgHbWLASZpwCabL1LDTJWkXrhq6EhIsgHQaQF3XkYKA/tmppbu_mbif.mp3"
+      audioUrl: "/audios/pirate-voice-1748438410710.mp3"
     },
   ]
 
   // Load generated audios from localStorage on component mount
   useEffect(() => {
     const savedAudios = localStorage.getItem('pirate-voice-generated-audios')
+    console.log('Loading from localStorage:', savedAudios)
     if (savedAudios) {
-      const audios = JSON.parse(savedAudios)
-      setGeneratedAudios(audios)
-      
-      // Auto-load the latest generated audio to the main player
-      if (audios.length > 0) {
-        const latestAudio = audios[0] // First item is the latest
-        setAudioUrl(latestAudio.localUrl)
-        setPirateText(latestAudio.pirateText)
-        setText(latestAudio.text)
+      try {
+        const audios = JSON.parse(savedAudios)
+        console.log('Parsed audios:', audios)
+        setGeneratedAudios(audios)
+        
+        // Auto-load the latest generated audio to the main player
+        if (audios.length > 0) {
+          const latestAudio = audios[0] // First item is the latest
+          console.log('Loading latest audio:', latestAudio)
+          setAudioUrl(latestAudio.localUrl)
+          setPirateText(latestAudio.pirateText || '')
+          setText(latestAudio.text)
+        }
+      } catch (error) {
+        console.error('Error parsing saved audios:', error)
+        localStorage.removeItem('pirate-voice-generated-audios')
       }
+    } else {
+      console.log('No saved audios found in localStorage')
     }
   }, [])
 
@@ -85,7 +96,10 @@ export default function Home() {
 
   // Save to localStorage when generatedAudios changes
   useEffect(() => {
-    localStorage.setItem('pirate-voice-generated-audios', JSON.stringify(generatedAudios))
+    if (generatedAudios.length > 0) {
+      console.log('Saving to localStorage:', generatedAudios)
+      localStorage.setItem('pirate-voice-generated-audios', JSON.stringify(generatedAudios))
+    }
   }, [generatedAudios])
 
   const handleGenerate = async () => {
@@ -202,6 +216,13 @@ export default function Home() {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`
   }
 
+  const toggleTextExpansion = (audioId: string) => {
+    setExpandedAudios(prev => ({
+      ...prev,
+      [audioId]: !prev[audioId]
+    }))
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-pirate-navy via-pirate-slate to-pirate-deep text-white overflow-hidden">
       <StarField />
@@ -235,13 +256,26 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.2 }}
           >
           {/* About Section */}
-            <h3 className="text-lg font-semibold mb-3 text-pirate-gold">🏴‍☠️ About This Generator</h3>
-            <div className="p-6 bg-black/30 rounded-xl">              
-              <p className="text-gray-300 text-sm leading-relaxed">
-                Our advanced AI technology transforms your ordinary text into authentic pirate speech patterns, 
-                complete with the proper accent, intonation, and maritime vocabulary that would make even 
-                Blackbeard himself proud. Click the play buttons on sample phrases to hear examples of pirate voices!
-              </p>
+            
+            <div className="p-6 bg-black/30 rounded-xl">
+              <div className="flex items-start gap-4">
+                {/* Pirate Avatar */}
+                <div className="flex-shrink-0">
+                  <img src="/pirate.jpg" alt="Pirate Avatar" className="w-full h-full object-cover" />
+                </div>
+                
+                {/* Introduction Content */}
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold mb-3 text-pirate-gold flex items-center gap-2">
+                    <span>Ahoy, Matey!</span>
+                    <span className="text-sm">⚓</span>
+                  </h3>
+                  <p className="text-gray-300 text-sm leading-relaxed mb-3">
+                    Welcome aboard the most advanced AI pirate voice generator on the seven seas! Our cutting-edge technology transforms your ordinary landlubber text into authentic pirate speech with the proper accent, intonation, and maritime vocabulary.
+                  </p>
+                  
+                </div>
+              </div>
             </div>
 
 
@@ -359,7 +393,22 @@ export default function Home() {
                         className="flex-1 min-w-0 cursor-pointer"
                         onClick={() => playGeneratedAudio(audio)}
                       >
-                        <p className="text-gray-300 text-sm truncate">{audio.text}</p>
+                        <div 
+                          className="text-gray-300 text-sm cursor-pointer hover:text-white transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            toggleTextExpansion(audio.id)
+                          }}
+                        >
+                          <p className={expandedAudios[audio.id] ? '' : 'truncate'}>
+                            {audio.text}
+                          </p>
+                          {audio.text.length > 50 && (
+                            <span className="text-pirate-gold text-xs mt-1 block">
+                              {expandedAudios[audio.id] ? '▲ Click to collapse' : '▼ Click to expand'}
+                            </span>
+                          )}
+                        </div>
                         <p className="text-gray-500 text-xs mt-1">{formatTimestamp(audio.timestamp)}</p>
                       </div>
                       <button
