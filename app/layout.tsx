@@ -10,6 +10,11 @@ export const metadata: Metadata = {
   keywords: 'pirate voice, AI voice generator, text to speech, pirate talk, voice synthesis',
   authors: [{ name: 'AI Pirate Voice Generator' }],
   robots: 'index, follow',
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
+  },
   openGraph: {
     title: 'AI Pirate Voice Generator',
     description: 'Transform your text into authentic pirate speech with AI',
