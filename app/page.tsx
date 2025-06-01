@@ -41,8 +41,8 @@ export default function Home() {
       audioUrl: "/audios/pirate-voice-1748438467152.mp3"
     },
     {
-      text: "Batten down the hatches, me hearties! A mighty storm be brewin' on the horizon!",
-      audioUrl: "/audios/pirate-voice-1748438427846.mp3"
+      text: "哈！瞧瞧是谁闯进了‘黑鳍鲨号’的地盘？是迷路的羔羊，还是送上门的肥羊？ 这片海是老子的地盘，浪花里都漂着老子的威名！想要活命？乖乖交出你的金币、美酒，还有……那枚镶宝石的戒指！",
+      audioUrl: "/audios/pirate-voice-1748743380488.mp3"
     },
     {
       text: "Arrr! Walk the plank, ye yellow-bellied sea dog, or face the wrath of Davy Jones!",
