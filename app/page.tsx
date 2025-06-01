@@ -41,7 +41,7 @@ export default function Home() {
       audioUrl: "/audios/pirate-voice-1748438467152.mp3"
     },
     {
-      text: "哈！瞧瞧是谁闯进了‘黑鳍鲨号’的地盘？是迷路的羔羊，还是送上门的肥羊？ 这片海是老子的地盘，浪花里都漂着老子的威名！想要活命？乖乖交出你的金币、美酒，还有……那枚镶宝石的戒指！",
+      text: "哈！瞧瞧是谁闯进了'黑鳍鲨号'的地盘？是迷路的羔羊，还是送上门的肥羊？ 这片海是老子的地盘，浪花里都漂着老子的威名！想要活命？乖乖交出你的金币、美酒，还有……那枚镶宝石的戒指！",
       audioUrl: "/audios/pirate-voice-1748743380488.mp3"
     },
     {
@@ -261,7 +261,7 @@ export default function Home() {
               <div className="flex items-start gap-4">
                 {/* Pirate Avatar */}
                 <div className="flex-shrink-0">
-                  <img src="/pirate.jpg" alt="Pirate Avatar" className="w-full h-full object-cover" />
+                  <img src="/pirate.jpg" alt="Pirate Avatar" className="w-32 h-32 lg:w-48 lg:h-48 xl:w-full xl:h-auto object-cover rounded-lg" />
                 </div>
                 
                 {/* Introduction Content */}
