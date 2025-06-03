@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Replicate from 'replicate'
-import fs from 'fs'
-import path from 'path'
+import { uploadAudioToSupabase } from '../../../lib/supabase'
 
 // Define the type for Replicate response
 interface ReplicateResponse {
@@ -22,32 +21,29 @@ const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 })
 
-// Function to download and save audio file
-async function downloadAndSaveAudio(audioUrl: string, filename: string): Promise<string> {
+// Function to directly upload audio from URL to Supabase Storage
+async function uploadAudioDirectlyToSupabase(audioUrl: string, filename: string): Promise<string> {
   try {
-    // Create public/audios directory if it doesn't exist
-    const audioDir = path.join(process.cwd(), 'public', 'audios')
-    if (!fs.existsSync(audioDir)) {
-      fs.mkdirSync(audioDir, { recursive: true })
-    }
-
-    // Download the audio file
+    console.log('Downloading audio from Replicate...')
+    
+    // Download the audio file from Replicate
     const response = await fetch(audioUrl)
     if (!response.ok) {
-      throw new Error(`Failed to download audio: ${response.statusText}`)
+      throw new Error(`Failed to download audio from Replicate: ${response.statusText}`)
     }
 
     const arrayBuffer = await response.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    // Save to local file
-    const filePath = path.join(audioDir, filename)
-    fs.writeFileSync(filePath, buffer)
+    console.log(`Audio downloaded (${buffer.length} bytes), uploading to Supabase...`)
 
-    // Return the local URL path
-    return `/audios/${filename}`
+    // Upload directly to Supabase Storage
+    const supabaseUrl = await uploadAudioToSupabase(buffer, filename)
+    
+    console.log('Audio uploaded to Supabase successfully:', supabaseUrl)
+    return supabaseUrl
   } catch (error) {
-    console.error('Error downloading and saving audio:', error)
+    console.error('Error uploading audio to Supabase:', error)
     throw error
   }
 }
@@ -84,7 +80,7 @@ export async function POST(request: NextRequest) {
       language_boost: "English",
       english_normalization: true
     };
-    console.log(input)
+    console.log('Voice generation input:', input)
     
     // Create prediction instead of running directly
     const prediction = await replicate.predictions.create({
@@ -142,21 +138,25 @@ export async function POST(request: NextRequest) {
 
     console.log('Voice generation completed successfully:', completed.output);
 
-    // Generate unique filename
+    // Generate unique filename for Supabase storage
     const timestamp = Date.now()
     const filename = `pirate-voice-${timestamp}.mp3`
     
-    // Download and save audio file locally
-    const localAudioPath = await downloadAndSaveAudio(completed.output, filename)
+    // Upload audio directly to Supabase Storage (no local saving)
+    const supabaseAudioUrl = await uploadAudioDirectlyToSupabase(completed.output, filename)
 
-    return NextResponse.json({
-      url: completed.output,
-      localUrl: localAudioPath,
+    console.log('Preparing API response...')
+    const responseData = {
+      url: completed.output, // Original Replicate URL (backup)
+      supabaseUrl: supabaseAudioUrl, // Supabase storage URL (primary)
       filename: filename,
       pirateText: pirateText,
       originalText: text,
       intensity: intensity
-    })
+    }
+    console.log('Response data prepared:', responseData)
+
+    return NextResponse.json(responseData)
 
   } catch (error) {
     console.error('Voice generation failed:', error)

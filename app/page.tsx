@@ -10,7 +10,7 @@ interface GeneratedAudio {
   id: string
   text: string
   audioUrl: string
-  localUrl: string
+  supabaseUrl: string
   filename: string
   pirateText: string
   timestamp: number
@@ -41,7 +41,7 @@ export default function Home() {
       audioUrl: "/audios/pirate-voice-1748438467152.mp3"
     },
     {
-      text: "哈！瞧瞧是谁闯进了‘黑鳍鲨号’的地盘？是迷路的羔羊，还是送上门的肥羊？ 这片海是老子的地盘，浪花里都漂着老子的威名！想要活命？乖乖交出你的金币、美酒，还有……那枚镶宝石的戒指！",
+      text: "哈！瞧瞧是谁闯进了'黑鳍鲨号'的地盘？是迷路的羔羊，还是送上门的肥羊？ 这片海是老子的地盘，浪花里都漂着老子的威名！想要活命？乖乖交出你的金币、美酒，还有……那枚镶宝石的戒指！",
       audioUrl: "/audios/pirate-voice-1748743380488.mp3"
     },
     {
@@ -64,7 +64,7 @@ export default function Home() {
         if (audios.length > 0) {
           const latestAudio = audios[0] // First item is the latest
           console.log('Loading latest audio:', latestAudio)
-          setAudioUrl(latestAudio.localUrl)
+          setAudioUrl(latestAudio.supabaseUrl)
           setPirateText(latestAudio.pirateText || '')
           setText(latestAudio.text)
         }
@@ -107,44 +107,66 @@ export default function Home() {
 
     setIsGenerating(true)
     try {
+      console.log('Starting voice generation request...')
+      
+      // Add timeout to the fetch request
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 120000) // 2 minutes timeout
+
       const response = await fetch('/api/generate-voice', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ text, intensity: 5 }), // Fixed intensity value
+        signal: controller.signal
       })
+
+      clearTimeout(timeoutId)
 
       if (!response.ok) {
         const errorData = await response.json()
         throw new Error(errorData.error || 'Failed to generate voice')
       }
 
+      console.log('Received response from API, parsing...')
       const result = await response.json()
-      setAudioUrl(result.localUrl)
+      console.log('API response:', result)
+      
+      setAudioUrl(result.supabaseUrl) // Changed from localUrl to supabaseUrl
       setPirateText(result.pirateText)
       
-      // Get audio duration from local file
-      const duration = await getAudioDuration(result.localUrl)
+      // Get audio duration from Supabase file
+      const duration = await getAudioDuration(result.supabaseUrl)
+      console.log('Audio duration detected:', duration)
       
       // Create new audio entry
       const newAudio: GeneratedAudio = {
         id: Date.now().toString(),
         text,
         audioUrl: result.url,
-        localUrl: result.localUrl,
+        supabaseUrl: result.supabaseUrl, // Changed from localUrl to supabaseUrl
         filename: result.filename,
         pirateText: result.pirateText,
         timestamp: Date.now(),
         duration: duration
       }
       
+      console.log('Adding new audio to list:', newAudio)
+      
       // Add to generated audios list (keep last 20)
       setGeneratedAudios(prev => [newAudio, ...prev.slice(0, 19)])
       
+      console.log('Voice generation completed successfully!')
+      
     } catch (error) {
       console.error('Failed to generate voice:', error)
-      alert(`Arrr! Something went wrong with the voice generation, matey! ${error instanceof Error ? error.message : 'Unknown error'}`)
+      
+      if (error instanceof Error && error.name === 'AbortError') {
+        alert('Arrr! The voice generation took too long and was cancelled. Please try again with shorter text, matey!')
+      } else {
+        alert(`Arrr! Something went wrong with the voice generation, matey! ${error instanceof Error ? error.message : 'Unknown error'}`)
+      }
     } finally {
       setIsGenerating(false)
     }
@@ -159,7 +181,7 @@ export default function Home() {
   }
 
   const playGeneratedAudio = (audio: GeneratedAudio) => {
-    setAudioUrl(audio.localUrl)
+    setAudioUrl(audio.supabaseUrl)
     setPirateText(audio.pirateText)
     setText(audio.text)
   }
@@ -379,7 +401,7 @@ export default function Home() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
-                          playPresetAudio(audio.localUrl)
+                          playPresetAudio(audio.supabaseUrl)
                         }}
                         className="flex-shrink-0 w-16 h-8 bg-pirate-gold hover:bg-pirate-gold/80 rounded-lg flex items-center justify-center text-black transition-all text-xs font-medium"
                         title="Play generated audio"
@@ -415,7 +437,7 @@ export default function Home() {
                         onClick={(e) => {
                           e.stopPropagation()
                           const link = document.createElement('a')
-                          link.href = audio.localUrl
+                          link.href = audio.supabaseUrl
                           link.download = audio.filename
                           link.target = '_blank'
                           link.click()
