@@ -283,7 +283,7 @@ export default function Home() {
               <div className="flex items-start gap-4">
                 {/* Pirate Avatar */}
                 <div className="flex-shrink-0">
-                  <img src="/pirate.jpg" alt="Pirate Avatar" className="w-full h-full object-cover" />
+                  <img src="/pirate.jpg" alt="Pirate Avatar" className="w-32 h-32 lg:w-48 lg:h-48 xl:w-full xl:h-auto object-cover rounded-lg" />
                 </div>
                 
                 {/* Introduction Content */}
