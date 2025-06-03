@@ -415,13 +415,12 @@ export default function Home() {
               
               <button
                 onClick={() => {
-                  const defaultText = "Shiver me timbers! That be the finest treasure I ever did see, ye scurvy dog!"
-                  setText(defaultText)
-                  setIsTextModified(false)
+                  setText('')
+                  setIsTextModified(true) // Empty text is considered modified from default
                 }}
                 className="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-lg transition-all border border-white/20"
               >
-                Reset Text
+                Clear Text
               </button>
             </div>
 
