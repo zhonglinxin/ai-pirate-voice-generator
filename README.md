@@ -5,6 +5,9 @@ Transform your ordinary text into authentic pirate speech with AI-powered voice 
 ## ✨ Features
 
 - **AI-Powered Voice Generation**: Uses Replicate's minimax/speech-02-hd model for high-quality voice synthesis
+- **Intelligent Button Behavior**: Button shows "Play" by default with sample text, "Generate Pirate Voice" when text is modified
+- **Smart Duplicate Detection**: Automatically detects and plays existing audio for previously generated or sample texts without regeneration
+- **Default Sample Text**: Starts with "Shiver me timbers! That be the finest treasure I ever did see, ye scurvy dog!" for instant demonstration
 - **Local Audio Storage**: Generated audio files are automatically downloaded and saved to local directory (`public/audios/`)
 - **Persistent Audio Library**: All generated audios are stored in localStorage and remain available after page refresh
 - **Audio Duration Display**: Play buttons show the duration of each audio file (e.g., "0:08", "1:23")
@@ -15,6 +18,27 @@ Transform your ordinary text into authentic pirate speech with AI-powered voice 
 - **Local File Management**: All audio playback uses local files for faster loading and offline access
 - **Sample Phrases**: Quick-start with pre-written pirate phrases and instant audio preview
 - **Download & Share**: Download generated MP3 audio or share your creations (downloads open in new window)
+
+## 🎯 Smart Features
+
+### Intelligent Audio Generation
+The application includes several smart features to enhance user experience:
+
+1. **Default Sample Text**: Loads with a pre-selected pirate phrase for immediate testing
+2. **Dynamic Button Labels**: 
+   - Shows "Play" when using default or sample text
+   - Changes to "Generate Pirate Voice" when text is modified
+3. **Duplicate Prevention**: 
+   - Checks sample phrases first - plays existing audio instead of generating
+   - Checks previously generated audios - reuses existing audio for identical text
+   - Saves API credits and time by avoiding unnecessary regeneration
+4. **Text Reset Function**: "Reset Text" button returns to default sample text
+
+### Audio Management Intelligence
+- **Automatic Sample Detection**: Recognizes when input matches predefined sample phrases
+- **Generated Audio Matching**: Detects when input text matches previously generated content
+- **Instant Playback**: Direct audio playback for matched content without API calls
+- **State Management**: Properly tracks text modification status for optimal user experience
 
 ## 🔧 Technical Implementation
 

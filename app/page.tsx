@@ -18,7 +18,7 @@ interface GeneratedAudio {
 }
 
 export default function Home() {
-  const [text, setText] = useState('')
+  const [text, setText] = useState("Shiver me timbers! That be the finest treasure I ever did see, ye scurvy dog!")
   const [isGenerating, setIsGenerating] = useState(false)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [pirateText, setPirateText] = useState<string>('')
@@ -26,6 +26,7 @@ export default function Home() {
   const [enablePirateTranslation, setEnablePirateTranslation] = useState(false)
   const [sampleDurations, setSampleDurations] = useState<{ [key: number]: number }>({})
   const [expandedAudios, setExpandedAudios] = useState<{ [key: string]: boolean }>({})
+  const [isTextModified, setIsTextModified] = useState(false)
 
   const samplePhrases = [
     {
@@ -104,6 +105,24 @@ export default function Home() {
 
   const handleGenerate = async () => {
     if (!text.trim()) return
+
+    // Check if text matches any sample phrase
+    const matchedSample = samplePhrases.find(phrase => phrase.text === text.trim())
+    if (matchedSample) {
+      // Play the sample audio directly without generation
+      playPresetAudio(matchedSample.audioUrl)
+      return
+    }
+
+    // Check if text matches any previously generated audio
+    const matchedGenerated = generatedAudios.find(audio => audio.text === text.trim())
+    if (matchedGenerated) {
+      // Play the existing generated audio directly without regeneration
+      playPresetAudio(matchedGenerated.supabaseUrl)
+      setAudioUrl(matchedGenerated.supabaseUrl)
+      setPirateText(matchedGenerated.pirateText)
+      return
+    }
 
     setIsGenerating(true)
     try {
@@ -184,6 +203,10 @@ export default function Home() {
     setAudioUrl(audio.supabaseUrl)
     setPirateText(audio.pirateText)
     setText(audio.text)
+    
+    // Check if the loaded text is different from default to update isTextModified
+    const defaultText = "Shiver me timbers! That be the finest treasure I ever did see, ye scurvy dog!"
+    setIsTextModified(audio.text !== defaultText)
   }
 
   const handleDownload = () => {
@@ -243,6 +266,13 @@ export default function Home() {
       ...prev,
       [audioId]: !prev[audioId]
     }))
+  }
+
+  const handleTextChange = (value: string) => {
+    setText(value)
+    // Check if text is different from default
+    const defaultText = "Shiver me timbers! That be the finest treasure I ever did see, ye scurvy dog!"
+    setIsTextModified(value !== defaultText)
   }
 
   return (
@@ -343,7 +373,7 @@ export default function Home() {
             
             <textarea
               value={text}
-              onChange={(e) => setText(e.target.value)}
+              onChange={(e) => handleTextChange(e.target.value)}
               placeholder="Enter your text here to convert it into a pirate's voice..."
               className="w-full h-48 bg-black/30 border-2 border-pirate-gold/30 rounded-xl p-4 text-white placeholder-gray-400 resize-none focus:outline-none focus:border-pirate-gold focus:ring-2 focus:ring-pirate-gold/20 transition-all"
               maxLength={500}
@@ -368,17 +398,30 @@ export default function Home() {
                   </>
                 ) : (
                   <>
-                    <Volume2 className="w-5 h-5" />
-                    Generate Pirate Voice
+                    {isTextModified ? (
+                      <>
+                        <Volume2 className="w-5 h-5" />
+                        Generate Pirate Voice
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-5 h-5" />
+                        Play
+                      </>
+                    )}
                   </>
                 )}
               </motion.button>
               
               <button
-                onClick={() => setText('')}
+                onClick={() => {
+                  const defaultText = "Shiver me timbers! That be the finest treasure I ever did see, ye scurvy dog!"
+                  setText(defaultText)
+                  setIsTextModified(false)
+                }}
                 className="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-lg transition-all border border-white/20"
               >
-                Clear Text
+                Reset Text
               </button>
             </div>
 
